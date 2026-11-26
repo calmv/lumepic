@@ -164,7 +164,7 @@ function WorkspaceApp() {
     try {
       const cfg = await api.getPublicConfig();
       setConfig(cfg);
-      document.title = `${cfg.siteTitle} · 极简私有图床`;
+      document.title = `${cfg.siteTitle} · 极简图床`;
     } catch (err) {
       const message = err instanceof Error ? err.message : '无法连接服务器';
       setConfigError(message);
@@ -1369,7 +1369,7 @@ function WorkspaceApp() {
         onClose={() => setSettingsOpen(false)}
         onConfigChanged={(next) => {
           setConfig(next);
-          document.title = `${next.siteTitle} · 极简私有图床`;
+          document.title = `${next.siteTitle} · 极简图床`;
         }}
         onMaintenanceDone={() => void fetchAdminData()}
       />

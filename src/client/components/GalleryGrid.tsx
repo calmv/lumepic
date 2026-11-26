@@ -87,6 +87,8 @@ function GalleryCard({
   image,
   width,
   height,
+  measuredWidth,
+  measuredHeight,
   selected,
   selectionActive,
   copyFormat,
@@ -101,6 +103,8 @@ function GalleryCard({
   image: ImageItem;
   width?: number;
   height?: number;
+  measuredWidth: number;
+  measuredHeight: number;
   selected: boolean;
   selectionActive: boolean;
   copyFormat: CopyFormat;
@@ -117,11 +121,22 @@ function GalleryCard({
   const [copied, setCopied] = useState(false);
   const thumbPlaceholder = useMemo(() => decodeThumbHashUrl(image.thumbhash), [image.thumbhash]);
   const longPressTimer = useRef<number | null>(null);
+  const suppressResetTimer = useRef<number | null>(null);
   const touchStartPos = useRef<{ x: number; y: number } | null>(null);
   const suppressClick = useRef(false);
 
-  const isNarrow = width !== undefined && width < 195;
-  const isVeryNarrow = width !== undefined && width < 130;
+  const buttonCount = !inTrash
+    ? image.uploaderType === 'guest' && onPromoteGuest
+      ? 4
+      : 3
+    : onRestore
+      ? 2
+      : 1;
+  const isNarrow = measuredWidth < 210;
+  const verticalRailHeight = buttonCount * 28 + (buttonCount - 1) * 6 + 20;
+  const useCompactGrid = isNarrow && measuredHeight < verticalRailHeight;
+  const useTinyButtons = useCompactGrid && measuredWidth < 78;
+  const hideNarrowText = isNarrow && (measuredWidth < 130 || (useCompactGrid && measuredWidth < 150));
 
   const clearLongPress = () => {
     if (longPressTimer.current !== null) {
@@ -131,7 +146,15 @@ function GalleryCard({
     touchStartPos.current = null;
   };
 
-  useEffect(() => clearLongPress, []);
+  useEffect(
+    () => () => {
+      clearLongPress();
+      if (suppressResetTimer.current !== null) {
+        window.clearTimeout(suppressResetTimer.current);
+      }
+    },
+    []
+  );
 
   const handleCopy = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -147,8 +170,9 @@ function GalleryCard({
     }
   };
 
+  const btnSize = useTinyButtons ? 'h-6 w-6' : 'h-7 w-7';
   const btnBase = isNarrow
-    ? 'flex h-7 w-7 items-center justify-center rounded-full border border-white/15 bg-black/50 text-white backdrop-blur-md transition-colors hover:bg-black/75'
+    ? `flex ${btnSize} items-center justify-center rounded-full border border-white/15 bg-black/50 text-white backdrop-blur-md transition-colors hover:bg-black/75`
     : 'flex h-7 w-7 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-md transition-colors hover:bg-white/35';
 
   const actionButtons = (
@@ -230,9 +254,12 @@ function GalleryCard({
         WebkitTouchCallout: 'none',
       }}
       onPointerDown={(e) => {
-        if ((e.pointerType !== 'touch' && e.pointerType !== 'pen') || selectionActive) return;
+        if (suppressResetTimer.current !== null) {
+          window.clearTimeout(suppressResetTimer.current);
+          suppressResetTimer.current = null;
+        }
         suppressClick.current = false;
-        touchStartPos.current = { x: e.clientX, y: e.clientY };
+        if ((e.pointerType !== 'touch' && e.pointerType !== 'pen') || selectionActive) return;
         clearLongPress();
         touchStartPos.current = { x: e.clientX, y: e.clientY };
         longPressTimer.current = window.setTimeout(() => {
@@ -248,8 +275,19 @@ function GalleryCard({
           clearLongPress();
         }
       }}
-      onPointerUp={clearLongPress}
-      onPointerCancel={clearLongPress}
+      onPointerUp={() => {
+        clearLongPress();
+        if (suppressClick.current) {
+          suppressResetTimer.current = window.setTimeout(() => {
+            suppressClick.current = false;
+            suppressResetTimer.current = null;
+          }, 400);
+        }
+      }}
+      onPointerCancel={() => {
+        clearLongPress();
+        suppressClick.current = false;
+      }}
       onPointerLeave={clearLongPress}
       onContextMenu={(e) => {
         if (suppressClick.current || !window.matchMedia('(hover: hover)').matches) {
@@ -259,6 +297,10 @@ function GalleryCard({
       onClick={(e) => {
         if (suppressClick.current) {
           suppressClick.current = false;
+          if (suppressResetTimer.current !== null) {
+            window.clearTimeout(suppressResetTimer.current);
+            suppressResetTimer.current = null;
+          }
           e.preventDefault();
           e.stopPropagation();
           return;
@@ -331,19 +373,25 @@ function GalleryCard({
             }`}
           >
             <UserCheck className="h-2.5 w-2.5" />
-            {!isVeryNarrow && '游客'}
+            {measuredWidth >= 130 && '游客'}
           </span>
         )}
       </div>
 
-      {/* Desktop hover scrim & actions (hidden on touch devices; vertical rail on narrow portrait cards) */}
+      {/* Desktop hover scrim & actions (hidden on touch devices; vertical rail or 2x2 cluster on narrow/short cards) */}
       {isNarrow ? (
         <div className="pointer-events-none absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/75 via-black/15 to-transparent p-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100 focus-within:opacity-100 [@media(hover:none)]:hidden">
-          <div className="pointer-events-none absolute right-2 bottom-2 flex flex-col items-center gap-1.5 group-hover:pointer-events-auto focus-within:pointer-events-auto">
+          <div
+            className={`pointer-events-none absolute right-2 bottom-2 group-hover:pointer-events-auto focus-within:pointer-events-auto ${
+              useCompactGrid
+                ? 'grid grid-cols-2 place-items-center gap-1'
+                : 'flex flex-col items-center gap-1.5'
+            }`}
+          >
             {actionButtons}
           </div>
-          {!isVeryNarrow && (
-            <div className="min-w-0 pr-9">
+          {!hideNarrowText && (
+            <div className={`min-w-0 ${useCompactGrid ? 'pr-16' : 'pr-9'}`}>
               <p className="truncate text-[11px] font-medium text-white">{image.originalName}</p>
               <p className="truncate font-mono text-[10px] text-white/75">{formatBytes(image.sizeBytes)}</p>
             </div>
@@ -401,6 +449,7 @@ export function GalleryGrid({
   }, [containerWidth, images, isMobile]);
 
   const selectionActive = selectedIds.size > 0;
+  const mobileSquareSize = containerWidth > 0 ? Math.max(80, (containerWidth - 10) / 2) : 140;
 
   return (
     <div ref={containerRef} className="w-full">
@@ -411,6 +460,8 @@ export function GalleryGrid({
               <GalleryCard
                 key={img.id}
                 image={img}
+                measuredWidth={mobileSquareSize}
+                measuredHeight={mobileSquareSize}
                 selected={selectedIds.has(img.id)}
                 selectionActive={selectionActive}
                 copyFormat={copyFormat}
@@ -435,6 +486,8 @@ export function GalleryGrid({
                   image={image}
                   width={width}
                   height={height}
+                  measuredWidth={width}
+                  measuredHeight={height}
                   selected={selectedIds.has(image.id)}
                   selectionActive={selectionActive}
                   copyFormat={copyFormat}
