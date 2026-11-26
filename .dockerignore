@@ -1,0 +1,8 @@
+node_modules
+dist
+data
+.env
+lumepic-backup-*.tar.gz
+.git
+*.log
+.DS_Store

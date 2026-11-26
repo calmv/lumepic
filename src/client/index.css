@@ -1,0 +1,64 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    color-scheme: light;
+    --bg-canvas: #fafafa;
+    --bg-surface: #ffffff;
+    --bg-subtle: #f4f4f5;
+    --border-hairline: rgba(15, 23, 42, 0.08);
+    --text-primary: #09090b;
+    --text-muted: #71717a;
+  }
+
+  .dark {
+    color-scheme: dark;
+    --bg-canvas: #09090c;
+    --bg-surface: #121318;
+    --bg-subtle: #1b1d24;
+    --border-hairline: rgba(255, 255, 255, 0.08);
+    --text-primary: #f4f4f5;
+    --text-muted: #a1a1aa;
+  }
+
+  html,
+  body {
+    background-color: var(--bg-canvas);
+    color: var(--text-primary);
+    font-family:
+      'Inter', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB',
+      'Microsoft YaHei', 'Segoe UI', Roboto, sans-serif;
+    transition: background-color 240ms cubic-bezier(0.22, 1, 0.36, 1), color 240ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+}
+
+/* Subtle dot-grid canvas ambiance */
+.bg-ambient-grid {
+  background-image: radial-gradient(rgba(113, 113, 122, 0.14) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.dark .bg-ambient-grid {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Crisp thin scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(113, 113, 122, 0.25);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(113, 113, 122, 0.45);
+}
