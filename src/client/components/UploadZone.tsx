@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState, type ChangeEvent } from 'reac
 import { AnimatePresence, motion } from 'motion/react';
 import { Check, Clipboard, Copy, ImagePlus, Loader2, UploadCloud, X } from 'lucide-react';
 import { api, ApiError } from '../lib/api';
+import { getImagePickerAccept } from '../lib/filePicker';
 import { buildImageLink, copyText, formatBytes, type CopyFormat } from '../lib/format';
 import { hasOpenModal } from '../lib/modal';
 import { SPRING_GENTLE, SPRING_SNAPPY } from '../lib/motion';
@@ -84,7 +85,6 @@ export function UploadZone({
   disabled = false,
 }: UploadZoneProps) {
   const { push } = useToast();
-  const inputRef = useRef<HTMLInputElement>(null);
   const [isDraggingWindow, setIsDraggingWindow] = useState(false);
   const [isHoverZone, setIsHoverZone] = useState(false);
   const [autoCopy, setAutoCopy] = useState<boolean>(() => {
@@ -400,11 +400,9 @@ export function UploadZone({
           transition={SPRING_SNAPPY}
           className="group relative cursor-pointer overflow-hidden rounded-3xl border border-dashed border-zinc-300/90 bg-white/75 px-6 py-7 transition-colors hover:border-blue-500/60 hover:bg-white dark:border-white/12 dark:bg-zinc-900/60 dark:hover:border-blue-400/50 dark:hover:bg-zinc-900/90"
         >
-          {/* Native overlay input avoids mobile WebView programmatic .click() rejection & uses permissionless Android Photo Picker */}
           <input
-            ref={inputRef}
             type="file"
-            accept="image/*"
+            accept={getImagePickerAccept()}
             multiple
             disabled={disabled}
             aria-label="选择图片上传"

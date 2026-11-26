@@ -20,6 +20,7 @@ import { DEFAULT_TOKEN_LIFETIME_DAYS, MAX_SITE_ICON_BYTES, MAX_TOKEN_LIFETIME_DA
   type AdminSettings, type AlbumItem, type ApiTokenItem,
   type PublicConfig, type StorageStats, type WebpMode } from '../../shared/types';
 import { api } from '../lib/api';
+import { getImagePickerAccept } from '../lib/filePicker';
 import { copyText, formatBytes, formatRelativeDate } from '../lib/format';
 import { useModalDialog } from '../lib/modal';
 import { SPRING_GENTLE, SPRING_SNAPPY } from '../lib/motion';
@@ -46,7 +47,6 @@ export function SettingsDrawer({
   const { push } = useToast();
   const confirm = useConfirm();
   const drawerRef = useRef<HTMLElement | null>(null);
-  const siteIconInput = useRef<HTMLInputElement>(null);
   const titleId = useId();
   useModalDialog(open, drawerRef, onClose);
   const [settings, setSettings] = useState<AdminSettings | null>(null);
@@ -167,9 +167,15 @@ export function SettingsDrawer({
   };
 
   const changeSiteIcon = (file: File | null) => {
-    if (file && (file.size === 0 || file.size > MAX_SITE_ICON_BYTES)) {
-      push('请选择不超过 2 MB 的非空图片', 'error');
-      return;
+    if (file) {
+      if (!/^image\/(?:png|jpeg|webp)$/i.test(file.type) && !/\.(?:png|jpe?g|webp)$/i.test(file.name)) {
+        push('站点图标仅支持 PNG、JPG 和 WebP', 'error');
+        return;
+      }
+      if (file.size === 0 || file.size > MAX_SITE_ICON_BYTES) {
+        push('请选择不超过 2 MB 的非空图片', 'error');
+        return;
+      }
     }
     void save(async () => {
       const { publicConfig } = file ? await api.uploadSiteIcon(file) : await api.resetSiteIcon();
@@ -640,9 +646,8 @@ export function SettingsDrawer({
                       >
                         选择图标
                         <input
-                          ref={siteIconInput}
                           type="file"
-                          accept="image/*"
+                          accept={getImagePickerAccept()}
                           disabled={saving}
                           aria-label="站点图标"
                           className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
