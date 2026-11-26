@@ -374,7 +374,7 @@ export function SettingsDrawer({
                                 onKeyDown={(e) => {
                                   if (e.key === 'Enter') e.currentTarget.blur();
                                 }}
-                                className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-2.5 py-1.5 text-xs dark:border-white/10 dark:bg-zinc-900"
+                                className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-2.5 py-1.5 text-xs text-zinc-900 outline-none transition-colors focus:border-blue-500 dark:border-white/10 dark:bg-zinc-900 dark:text-zinc-100 dark:focus:border-blue-400"
                               />
                             </div>
                             <div>
@@ -393,7 +393,7 @@ export function SettingsDrawer({
                                 onKeyDown={(e) => {
                                   if (e.key === 'Enter') e.currentTarget.blur();
                                 }}
-                                className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-2.5 py-1.5 text-xs dark:border-white/10 dark:bg-zinc-900"
+                                className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-2.5 py-1.5 text-xs text-zinc-900 outline-none transition-colors focus:border-blue-500 dark:border-white/10 dark:bg-zinc-900 dark:text-zinc-100 dark:focus:border-blue-400"
                               />
                             </div>
                             <div>
@@ -408,12 +408,12 @@ export function SettingsDrawer({
                                     '游客图片保留时长已更新'
                                   )
                                 }
-                                className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-2 py-1.5 text-xs text-zinc-900 dark:border-white/10 dark:bg-zinc-900 dark:text-zinc-100"
+                                className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-2 py-1.5 text-xs text-zinc-900 outline-none transition-colors focus:border-blue-500 dark:border-white/10 dark:bg-zinc-900 dark:text-zinc-100 dark:focus:border-blue-400"
                               >
-                                <option value={1}>1 天</option>
-                                <option value={7}>7 天</option>
-                                <option value={30}>30 天</option>
-                                <option value={0}>永久保留</option>
+                                <option value={1} className="bg-white text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100">1 天</option>
+                                <option value={7} className="bg-white text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100">7 天</option>
+                                <option value={30} className="bg-white text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100">30 天</option>
+                                <option value={0} className="bg-white text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100">永久保留</option>
                               </select>
                             </div>
                           </div>
@@ -451,23 +451,23 @@ export function SettingsDrawer({
                       )}
 
                       <div className="mt-3 grid grid-cols-3 gap-2 text-center text-[11px]">
-                        <div className="rounded-xl bg-white p-2 dark:bg-zinc-900">
+                        <div className="rounded-xl border border-zinc-200/60 bg-white p-2 dark:border-white/[0.06] dark:bg-zinc-900">
                           <p className="font-mono text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                             {stats.adminImages}
                           </p>
-                          <p className="text-zinc-500">管理员图</p>
+                          <p className="text-zinc-500 dark:text-zinc-400">管理员图</p>
                         </div>
-                        <div className="rounded-xl bg-white p-2 dark:bg-zinc-900">
+                        <div className="rounded-xl border border-zinc-200/60 bg-white p-2 dark:border-white/[0.06] dark:bg-zinc-900">
                           <p className="font-mono text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                             {stats.guestImages}
                           </p>
-                          <p className="text-zinc-500">游客图</p>
+                          <p className="text-zinc-500 dark:text-zinc-400">游客图</p>
                         </div>
-                        <div className="rounded-xl bg-white p-2 dark:bg-zinc-900">
+                        <div className="rounded-xl border border-zinc-200/60 bg-white p-2 dark:border-white/[0.06] dark:bg-zinc-900">
                           <p className="font-mono text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                             {stats.trashImages}
                           </p>
-                          <p className="text-zinc-500">回收站</p>
+                          <p className="text-zinc-500 dark:text-zinc-400">回收站</p>
                         </div>
                       </div>
 
@@ -579,7 +579,7 @@ export function SettingsDrawer({
                         <p className="text-xs font-medium text-zinc-900 dark:text-zinc-100">
                           自动清除隐私 EXIF
                         </p>
-                        <p className="text-[11px] text-zinc-500">
+                        <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
                           剥离照片中的 GPS 经纬度与设备信息；关闭后可在灯箱查看相机参数
                         </p>
                       </div>
@@ -593,7 +593,7 @@ export function SettingsDrawer({
 
                     <div className="grid grid-cols-1 gap-3 pt-1 sm:grid-cols-2">
                       <div>
-                        <label className="block text-[11px] text-zinc-500">站点名称</label>
+                        <label className="block text-[11px] text-zinc-500 dark:text-zinc-400">站点名称</label>
                         <input
                           type="text"
                           value={settings.siteTitle}
@@ -601,11 +601,11 @@ export function SettingsDrawer({
                           onBlur={() =>
                             void patchSettings({ siteTitle: settings.siteTitle }, '站点标题已更新')
                           }
-                          className="mt-1 w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs outline-none focus:border-blue-500 dark:border-white/10 dark:bg-zinc-900"
+                          className="mt-1 w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs text-zinc-900 placeholder-zinc-400 outline-none transition-colors focus:border-blue-500 focus:bg-white dark:border-white/10 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder-zinc-500 dark:focus:border-blue-400"
                         />
                       </div>
                       <div>
-                        <label className="block text-[11px] text-zinc-500">
+                        <label className="block text-[11px] text-zinc-500 dark:text-zinc-400">
                           管理员单图上限 (MB，最高 {hardMaxMb})
                         </label>
                         <input
@@ -620,7 +620,7 @@ export function SettingsDrawer({
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') e.currentTarget.blur();
                           }}
-                          className="mt-1 w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs outline-none focus:border-blue-500 dark:border-white/10 dark:bg-zinc-900"
+                          className="mt-1 w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs text-zinc-900 placeholder-zinc-400 outline-none transition-colors focus:border-blue-500 focus:bg-white dark:border-white/10 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder-zinc-500 dark:focus:border-blue-400"
                         />
                       </div>
                     </div>
@@ -631,16 +631,16 @@ export function SettingsDrawer({
                       </SiteIcon>
                       <div className="mr-auto">
                         <p className="text-xs font-medium text-zinc-900 dark:text-zinc-100">站点图标</p>
-                        <p className="text-[11px] text-zinc-500">PNG、JPG、WebP，最多 2 MB</p>
+                        <p className="text-[11px] text-zinc-500 dark:text-zinc-400">PNG、JPG、WebP，最多 2 MB</p>
                       </div>
                       {siteIconUrl && (
                         <button type="button" disabled={saving} onClick={() => changeSiteIcon(null)}
-                          className="rounded-xl px-2.5 py-1.5 text-xs text-zinc-500 hover:bg-zinc-100 disabled:opacity-50 dark:hover:bg-white/10">
+                          className="rounded-xl px-2.5 py-1.5 text-xs text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-800 disabled:opacity-50 dark:text-zinc-400 dark:hover:bg-white/10 dark:hover:text-zinc-200">
                           恢复默认
                         </button>
                       )}
                       <label
-                        className={`relative cursor-pointer rounded-xl border border-zinc-200/80 px-2.5 py-1.5 text-xs font-medium hover:bg-zinc-100 dark:border-white/10 dark:hover:bg-white/10 ${
+                        className={`relative cursor-pointer rounded-xl border border-zinc-200/80 bg-white px-2.5 py-1.5 text-xs font-medium text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-white/10 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-white/10 ${
                           saving ? 'pointer-events-none opacity-50' : ''
                         }`}
                       >
@@ -661,7 +661,7 @@ export function SettingsDrawer({
                     </div>
 
                     <div>
-                      <label className="block text-[11px] text-zinc-500">
+                      <label className="block text-[11px] text-zinc-500 dark:text-zinc-400">
                         外链域名{publicUrlLocked ? '（由部署环境管理）' : '（可选，如 https://img.example.com）'}
                       </label>
                       <input
@@ -673,7 +673,7 @@ export function SettingsDrawer({
                         onBlur={() => {
                           if (!publicUrlLocked) void patchSettings({ publicUrl: settings.publicUrl }, '外链域名已更新');
                         }}
-                        className="mt-1 w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-1.5 font-mono text-xs outline-none focus:border-blue-500 dark:border-white/10 dark:bg-zinc-900"
+                        className="mt-1 w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-1.5 font-mono text-xs text-zinc-900 placeholder-zinc-400 outline-none transition-colors focus:border-blue-500 focus:bg-white read-only:cursor-not-allowed read-only:opacity-60 dark:border-white/10 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder-zinc-500 dark:focus:border-blue-400"
                       />
                     </div>
                   </section>
@@ -717,7 +717,7 @@ export function SettingsDrawer({
                               '防盗链白名单已保存'
                             )
                           }
-                          className="w-full rounded-xl border border-zinc-200 bg-zinc-50 p-2.5 font-mono text-xs outline-none focus:border-blue-500 dark:border-white/10 dark:bg-zinc-900"
+                          className="w-full rounded-xl border border-zinc-200 bg-zinc-50 p-2.5 font-mono text-xs text-zinc-900 placeholder-zinc-400 outline-none transition-colors focus:border-blue-500 focus:bg-white dark:border-white/10 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder-zinc-500 dark:focus:border-blue-400"
                         />
                         <div className="flex items-center justify-between gap-3 rounded-xl border border-zinc-200/70 bg-zinc-50/70 px-3 py-2 dark:border-white/10 dark:bg-white/[0.03]">
                           <div>
@@ -807,10 +807,10 @@ export function SettingsDrawer({
                                         randomApiEnabled: nextIds.length > 0,
                                       });
                                     }}
-                                    className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                                    className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-[11px] font-medium transition-colors ${
                                       selected
-                                        ? 'bg-blue-600 text-white'
-                                        : 'bg-white text-zinc-600 hover:bg-zinc-100 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800'
+                                        ? 'border-blue-600 bg-blue-600 text-white'
+                                        : 'border-zinc-200/80 bg-white text-zinc-600 hover:bg-zinc-100 dark:border-white/10 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800'
                                     }`}
                                   >
                                     {selected && <Check className="h-3 w-3" />}
@@ -836,7 +836,7 @@ export function SettingsDrawer({
                                       push('已复制随机图 API 地址', 'success');
                                     }
                                   }}
-                                  className="rounded-lg bg-white p-1.5 text-zinc-600 shadow-xs hover:text-blue-600 dark:bg-zinc-900 dark:text-zinc-300"
+                                  className="rounded-lg border border-zinc-200/70 bg-white p-1.5 text-zinc-600 shadow-xs transition-colors hover:text-blue-600 dark:border-white/10 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:text-blue-400"
                                   title="复制链接"
                                 >
                                   <Copy className="h-3.5 w-3.5" />
@@ -845,14 +845,14 @@ export function SettingsDrawer({
                                   href="/api/random"
                                   target="_blank"
                                   rel="noreferrer"
-                                  className="rounded-lg bg-white p-1.5 text-zinc-600 shadow-xs hover:text-blue-600 dark:bg-zinc-900 dark:text-zinc-300"
+                                  className="rounded-lg border border-zinc-200/70 bg-white p-1.5 text-zinc-600 shadow-xs transition-colors hover:text-blue-600 dark:border-white/10 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:text-blue-400"
                                   title="新窗口测试打开"
                                 >
                                   <ExternalLink className="h-3.5 w-3.5" />
                                 </a>
                               </div>
                             </div>
-                            <p className="mt-1.5 text-[10px] leading-relaxed text-zinc-500">
+                            <p className="mt-1.5 text-[10px] leading-relaxed text-zinc-500 dark:text-zinc-400">
                               短路径也支持 <code className="font-mono">/random</code>；追加{' '}
                               <code className="font-mono">?format=json</code> 返回 JSON，追加{' '}
                               <code className="font-mono">?orient=landscape</code> 或{' '}
@@ -878,38 +878,38 @@ export function SettingsDrawer({
                         value={newTokenName}
                         onChange={(e) => setNewTokenName(e.target.value)}
                         placeholder="备注名，如：主力电脑 PicGo"
-                        className="min-w-0 flex-1 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs outline-none focus:border-blue-500 dark:border-white/10 dark:bg-zinc-900"
+                        className="min-w-0 flex-1 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs text-zinc-900 placeholder-zinc-400 outline-none transition-colors focus:border-blue-500 focus:bg-white dark:border-white/10 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder-zinc-500 dark:focus:border-blue-400"
                       />
                       <select
                         aria-label="Token 有效期"
                         title="Token 有效期"
                         value={tokenLifetime}
                         onChange={(event) => setTokenLifetime(event.target.value)}
-                        className="shrink-0 rounded-xl border border-zinc-200 bg-zinc-50 px-2 py-1.5 text-xs outline-none focus:border-blue-500 dark:border-white/10 dark:bg-zinc-900"
+                        className="shrink-0 rounded-xl border border-zinc-200 bg-zinc-50 px-2 py-1.5 text-xs text-zinc-900 outline-none transition-colors focus:border-blue-500 dark:border-white/10 dark:bg-zinc-900 dark:text-zinc-100 dark:focus:border-blue-400"
                       >
-                        <option value="7">7 天</option>
-                        <option value="30">30 天</option>
-                        <option value={DEFAULT_TOKEN_LIFETIME_DAYS}>{DEFAULT_TOKEN_LIFETIME_DAYS} 天</option>
-                        <option value="365">365 天</option>
-                        <option value="custom">自定义</option>
-                        <option value="0">永久</option>
+                        <option value="7" className="bg-white text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100">7 天</option>
+                        <option value="30" className="bg-white text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100">30 天</option>
+                        <option value={DEFAULT_TOKEN_LIFETIME_DAYS} className="bg-white text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100">{DEFAULT_TOKEN_LIFETIME_DAYS} 天</option>
+                        <option value="365" className="bg-white text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100">365 天</option>
+                        <option value="custom" className="bg-white text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100">自定义</option>
+                        <option value="0" className="bg-white text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100">永久</option>
                       </select>
                       <button
                         type="button"
                         onClick={() => void handleCreateToken()}
                         disabled={creatingToken}
-                        className="inline-flex shrink-0 items-center gap-1 rounded-xl bg-zinc-900 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-zinc-800 disabled:opacity-60 dark:bg-white dark:text-zinc-900"
+                        className="inline-flex shrink-0 items-center gap-1 rounded-xl bg-zinc-900 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-zinc-800 disabled:opacity-60 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
                       >
                         <Plus className="h-3.5 w-3.5" />
                         生成
                       </button>
                     </div>
                     {tokenLifetime === 'custom' && (
-                      <label className="flex items-center gap-2 text-[11px] text-zinc-500">
+                      <label className="flex items-center gap-2 text-[11px] text-zinc-500 dark:text-zinc-400">
                         自定义天数
                         <input type="number" min={1} max={MAX_TOKEN_LIFETIME_DAYS} step={1}
                           value={customTokenDays} onChange={(event) => setCustomTokenDays(event.target.value)}
-                          className="w-24 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs text-zinc-900 outline-none focus:border-blue-500 dark:border-white/10 dark:bg-zinc-900 dark:text-zinc-100" />
+                          className="w-24 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs text-zinc-900 outline-none transition-colors focus:border-blue-500 focus:bg-white dark:border-white/10 dark:bg-zinc-900 dark:text-zinc-100 dark:focus:border-blue-400" />
                       </label>
                     )}
 
@@ -918,7 +918,7 @@ export function SettingsDrawer({
                         <p className="font-medium text-emerald-700 dark:text-emerald-300">
                           新 Token（仅展示这一次，请妥善复制）：
                         </p>
-                        <div className="mt-1.5 flex items-center justify-between gap-2 rounded-lg bg-white/80 px-2.5 py-1.5 font-mono text-[11px] dark:bg-black/40">
+                        <div className="mt-1.5 flex items-center justify-between gap-2 rounded-lg bg-white/85 px-2.5 py-1.5 font-mono text-[11px] text-zinc-800 dark:bg-black/40 dark:text-zinc-100">
                           <span className="truncate">{freshRawToken}</span>
                           <button
                             type="button"
@@ -949,7 +949,7 @@ export function SettingsDrawer({
                           >
                             <div>
                               <p className="font-medium text-zinc-800 dark:text-zinc-200">{t.name}</p>
-                              <p className="font-mono text-[10px] text-zinc-400">
+                              <p className="font-mono text-[10px] text-zinc-500 dark:text-zinc-400">
                                 {t.prefix}... ·{' '}
                                 {t.lastUsedAt ? `最近使用 ${formatRelativeDate(t.lastUsedAt)}` : '尚未使用'}
                                 {t.expiresAt ? ` · 到期 ${new Date(t.expiresAt).toLocaleDateString('zh-CN')}` : ' · 永久'}
@@ -966,7 +966,7 @@ export function SettingsDrawer({
                                   push(error instanceof Error ? error.message : '吊销 Token 失败', 'error');
                                 }
                               }}
-                              className="rounded-lg p-1.5 text-zinc-400 hover:bg-rose-500/10 hover:text-rose-500"
+                              className="rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-rose-500/10 hover:text-rose-500"
                             >
                               <Trash2 className="h-3.5 w-3.5" />
                             </button>
@@ -990,14 +990,14 @@ export function SettingsDrawer({
                         value={currentPwd}
                         onChange={(e) => setCurrentPwd(e.target.value)}
                         placeholder="当前密码"
-                        className="rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs outline-none focus:border-blue-500 dark:border-white/10 dark:bg-zinc-900"
+                        className="rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs text-zinc-900 placeholder-zinc-400 outline-none transition-colors focus:border-blue-500 focus:bg-white dark:border-white/10 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder-zinc-500 dark:focus:border-blue-400"
                       />
                       <input
                         type="password"
                         value={newPwd}
                         onChange={(e) => setNewPwd(e.target.value)}
-                      placeholder={`新密码（至少 ${MIN_ADMIN_PASSWORD_LENGTH} 个字符）`}
-                        className="rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs outline-none focus:border-blue-500 dark:border-white/10 dark:bg-zinc-900"
+                        placeholder={`新密码（至少 ${MIN_ADMIN_PASSWORD_LENGTH} 个字符）`}
+                        className="rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs text-zinc-900 placeholder-zinc-400 outline-none transition-colors focus:border-blue-500 focus:bg-white dark:border-white/10 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder-zinc-500 dark:focus:border-blue-400"
                       />
                     </div>
                     <button

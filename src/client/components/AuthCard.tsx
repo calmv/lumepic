@@ -1,6 +1,6 @@
 import { useId, useRef, useState, type FormEvent } from 'react';
 import { motion } from 'motion/react';
-import { ArrowRight, Lock, Sparkles, X } from 'lucide-react';
+import { ArrowRight, Lock, Moon, Sparkles, Sun, X } from 'lucide-react';
 import { api } from '../lib/api';
 import { MIN_ADMIN_PASSWORD_LENGTH, type PublicConfig } from '../../shared/types';
 import { useModalDialog } from '../lib/modal';
@@ -9,6 +9,8 @@ import { SiteIcon } from './SiteIcon';
 
 interface AuthCardProps {
   config: PublicConfig;
+  dark?: boolean;
+  onToggleTheme?: () => void;
   isModal?: boolean;
   onClose?: () => void;
   onBackHome?: () => void;
@@ -17,6 +19,8 @@ interface AuthCardProps {
 
 export function AuthCard({
   config,
+  dark,
+  onToggleTheme,
   isModal = false,
   onClose,
   onBackHome,
@@ -110,7 +114,7 @@ export function AuthCard({
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder={isSetup ? `设置管理员密码（至少 ${MIN_ADMIN_PASSWORD_LENGTH} 个字符）` : '输入管理员密码'}
-            className="w-full rounded-2xl border border-zinc-200 bg-zinc-50/70 px-4 py-3 text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-all focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-black/30 dark:text-zinc-100 dark:focus:border-blue-400 dark:focus:bg-black/50"
+            className="w-full rounded-2xl border border-zinc-200 bg-zinc-50/70 px-4 py-3 text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-all focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-black/30 dark:text-zinc-100 dark:placeholder-zinc-500 dark:focus:border-blue-400 dark:focus:bg-black/50"
           />
         </div>
 
@@ -123,7 +127,7 @@ export function AuthCard({
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
               placeholder="再次确认密码"
-              className="w-full rounded-2xl border border-zinc-200 bg-zinc-50/70 px-4 py-3 text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-all focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-black/30 dark:text-zinc-100 dark:focus:border-blue-400 dark:focus:bg-black/50"
+              className="w-full rounded-2xl border border-zinc-200 bg-zinc-50/70 px-4 py-3 text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-all focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-black/30 dark:text-zinc-100 dark:placeholder-zinc-500 dark:focus:border-blue-400 dark:focus:bg-black/50"
             />
           </div>
         )}
@@ -137,7 +141,7 @@ export function AuthCard({
             value={setupToken}
             onChange={(e) => setSetupToken(e.target.value)}
             required
-            className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm dark:border-white/10 dark:bg-zinc-900"
+            className="w-full rounded-2xl border border-zinc-200 bg-zinc-50/70 px-4 py-3 text-sm text-zinc-900 placeholder-zinc-400 outline-none transition-all focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-black/30 dark:text-zinc-100 dark:placeholder-zinc-500 dark:focus:border-blue-400 dark:focus:bg-black/50"
           />
         )}
 
@@ -165,7 +169,7 @@ export function AuthCard({
           <button
             type="button"
             onClick={onBackHome}
-            className="w-full pt-1 text-center text-xs text-zinc-400 transition-colors hover:text-zinc-700 dark:hover:text-zinc-200"
+            className="w-full pt-1 text-center text-xs text-zinc-500 transition-colors hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
           >
             返回图片上传首页
           </button>
@@ -190,6 +194,17 @@ export function AuthCard({
   return (
     <div className="bg-ambient-grid relative flex min-h-screen items-center justify-center overflow-hidden p-4">
       <div className="pointer-events-none absolute -top-40 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-blue-500/10 blur-3xl dark:bg-blue-500/15" />
+      {onToggleTheme && (
+        <button
+          type="button"
+          onClick={onToggleTheme}
+          className="fixed top-4 right-4 z-10 flex h-9 w-9 items-center justify-center rounded-xl border border-zinc-200/80 bg-white/80 text-zinc-600 backdrop-blur-md transition-colors hover:bg-zinc-100 dark:border-white/10 dark:bg-zinc-900/80 dark:text-zinc-300 dark:hover:bg-white/10"
+          title="切换明暗主题"
+          aria-label="切换明暗主题"
+        >
+          {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+        </button>
+      )}
       {card}
     </div>
   );

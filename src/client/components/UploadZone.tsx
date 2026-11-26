@@ -494,14 +494,14 @@ export function UploadZone({
               className="mt-3 overflow-hidden"
             >
               <div className="mb-1.5 flex items-center justify-between px-1">
-                <span className="text-[11px] font-medium tracking-wide text-zinc-400 uppercase">
+                <span className="text-[11px] font-medium tracking-wide text-zinc-500 uppercase dark:text-zinc-400">
                   近期传输 ({queue.length})
                 </span>
                 <button
                   type="button"
                   onClick={() => setQueue([])}
                   disabled={queue.some((item) => item.status === 'uploading')}
-                  className="text-[11px] text-zinc-400 transition-colors hover:text-zinc-700 disabled:opacity-40 dark:hover:text-zinc-200"
+                  className="text-[11px] text-zinc-500 transition-colors hover:text-zinc-800 disabled:opacity-40 dark:text-zinc-400 dark:hover:text-zinc-200"
                 >
                   收起队列
                 </button>
@@ -541,7 +541,7 @@ export function UploadZone({
                         </div>
 
                         {item.status === 'uploading' && item.retryAfter !== undefined && (
-                          <p className="mt-1 text-[11px] text-zinc-500">预计 {item.retryAfter} 秒后自动重试</p>
+                          <p className="mt-1 text-[11px] text-zinc-500 dark:text-zinc-400">预计 {item.retryAfter} 秒后自动重试</p>
                         )}
                         {item.status === 'uploading' && item.retryAfter === undefined && (
                           <div className="mt-1.5 flex items-center gap-2">
@@ -576,8 +576,8 @@ export function UploadZone({
 
                         {item.status === 'error' && (
                           <div className="mt-1 flex items-center gap-2">
-                            <p className="min-w-0 truncate text-[11px] text-rose-500" title={item.error}>{item.error}</p>
-                            {item.file && <button type="button" className="shrink-0 text-[11px] text-blue-600 disabled:opacity-40"
+                            <p className="min-w-0 truncate text-[11px] text-rose-500 dark:text-rose-400" title={item.error}>{item.error}</p>
+                            {item.file && <button type="button" className="shrink-0 text-[11px] font-medium text-blue-600 hover:underline disabled:opacity-40 dark:text-blue-400"
                               disabled={queue.filter((row) => row.status === 'uploading').length >= MAX_QUEUE_SIZE}
                               onClick={() => {
                                 dismissQueueItem(item.localId);

@@ -184,7 +184,7 @@ export function Lightbox({
             onChange={(e) => setEditingName(e.target.value)}
             onBlur={() => void commitName()}
             onKeyDown={(e) => e.key === 'Enter' && void commitName()}
-            className="mt-1.5 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-xs text-white outline-none focus:border-blue-400"
+            className="mt-1.5 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-xs text-white outline-none transition-colors focus:border-blue-400"
           />
         </div>
 
@@ -205,9 +205,9 @@ export function Lightbox({
                 style={{ colorScheme: 'dark' }}
                 className="flex-1 rounded-xl border border-white/15 bg-zinc-800 px-2.5 py-1.5 text-xs text-zinc-100 outline-none focus:border-blue-400"
               >
-                <option value="">默认图库</option>
+                <option value="" className="bg-zinc-900 text-zinc-100">默认图库</option>
                 {albums.map((a) => (
-                  <option key={a.id} value={a.id}>
+                  <option key={a.id} value={a.id} className="bg-zinc-900 text-zinc-100">
                     {a.name}
                   </option>
                 ))}
@@ -230,7 +230,7 @@ export function Lightbox({
             {image.shareUrl && (
               <button type="button" onClick={() => onRevokeSharing(image)}
                 title="撤销外链" aria-label="撤销外链"
-                className="rounded-lg p-1 text-zinc-400 hover:bg-white/10 hover:text-white">
+                className="rounded-lg p-1 text-zinc-400 transition-colors hover:bg-white/10 hover:text-white">
                 <Link2Off className="h-3.5 w-3.5" />
               </button>
             )}
@@ -282,9 +282,9 @@ export function Lightbox({
             }
             className="mt-1.5 w-full rounded-xl border border-white/10 bg-zinc-800 px-3 py-2 text-xs text-zinc-100 outline-none focus:border-blue-400"
           >
-            <option value="">未分类（默认）</option>
+            <option value="" className="bg-zinc-900 text-zinc-100">未分类（默认）</option>
             {albums.map((a) => (
-              <option key={a.id} value={a.id}>
+              <option key={a.id} value={a.id} className="bg-zinc-900 text-zinc-100">
                 {a.name}
               </option>
             ))}
@@ -658,7 +658,7 @@ export function Lightbox({
             {showInfo && !immersive && (
               <motion.aside
                 initial={{ width: 0, opacity: 0 }}
-                animate={{ width: 340, opacity: 1 }}
+                animate={{ width: 340, opacity: 0.98 }}
                 exit={{ width: 0, opacity: 0 }}
                 transition={SPRING_SNAPPY}
                 className="hidden h-full shrink-0 overflow-hidden border-l border-white/10 bg-zinc-900/95 text-zinc-100 md:block"

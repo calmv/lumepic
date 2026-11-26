@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { BookmarkPlus, Check, Copy, Download, RotateCcw, Trash2, UserCheck } from 'lucide-react';
+import { BookmarkPlus, Check, Copy, Download, RotateCcw, Trash2 } from 'lucide-react';
 import type { ImageItem } from '../../shared/types';
 import { triggerSingleImageDownload } from '../lib/api';
 import { buildImageLink, copyText, formatBytes, type CopyFormat } from '../lib/format';
@@ -51,7 +51,7 @@ function buildJustifiedRows(
 
     if (estimatedWidth >= containerWidth) {
       const availableWidth = containerWidth - totalGaps;
-      const rowHeight = Math.min(targetRowHeight * 1.45, Math.max(130, availableWidth / ratioSum));
+      const rowHeight = Math.min(targetRowHeight * 1.45, Math.max(146, availableWidth / ratioSum));
       rows.push({
         items: current.map((entry) => ({
           image: entry.image,
@@ -132,11 +132,8 @@ function GalleryCard({
     : onRestore
       ? 2
       : 1;
-  const isNarrow = measuredWidth < 210;
-  const verticalRailHeight = buttonCount * 28 + (buttonCount - 1) * 6 + 20;
-  const useCompactGrid = isNarrow && measuredHeight < verticalRailHeight;
-  const useTinyButtons = useCompactGrid && measuredWidth < 78;
-  const hideNarrowText = isNarrow && (measuredWidth < 130 || (useCompactGrid && measuredWidth < 150));
+  const isShortCard = measuredHeight < (buttonCount >= 4 ? 144 : 116);
+  const splitMetaLines = measuredWidth < 165;
 
   const clearLongPress = () => {
     if (longPressTimer.current !== null) {
@@ -170,10 +167,19 @@ function GalleryCard({
     }
   };
 
-  const btnSize = useTinyButtons ? 'h-6 w-6' : 'h-7 w-7';
-  const btnBase = isNarrow
-    ? `flex ${btnSize} items-center justify-center rounded-full border border-white/15 bg-black/50 text-white backdrop-blur-md transition-colors hover:bg-black/75`
-    : 'flex h-7 w-7 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-md transition-colors hover:bg-white/35';
+  const btnSize = isShortCard ? 'h-6 w-6' : 'h-7 w-7';
+  const iconSize = `${isShortCard ? 'h-3 w-3' : 'h-3.5 w-3.5'} pointer-events-none shrink-0`;
+  const btnShared = `pointer-events-none flex ${btnSize} shrink-0 items-center justify-center rounded-full border bg-clip-padding opacity-0 shadow-xs backdrop-blur-md transition-all duration-150 hover:scale-105 active:scale-95 [@media(hover:hover)]:group-hover:pointer-events-auto [@media(hover:hover)]:group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100 focus-visible:pointer-events-auto focus-visible:opacity-100 dark:shadow-black/30`;
+  const btnSurface =
+    'border-zinc-900/12 bg-white/82 text-zinc-700 dark:border-white/18 dark:bg-zinc-900/68 dark:text-zinc-100';
+  const btnNeutralHover =
+    'hover:border-zinc-900/22 hover:bg-white hover:text-zinc-950 dark:hover:border-white/35 dark:hover:bg-zinc-800/95 dark:hover:text-white';
+  const btnPromoteHover =
+    'hover:border-blue-500 hover:bg-blue-500 hover:text-white dark:hover:border-blue-400 dark:hover:bg-blue-500 dark:hover:text-white';
+  const btnRestoreHover =
+    'hover:border-emerald-500 hover:bg-emerald-500 hover:text-white dark:hover:border-emerald-400 dark:hover:bg-emerald-500 dark:hover:text-white';
+  const btnDangerHover =
+    'hover:border-rose-500 hover:bg-rose-500 hover:text-white dark:hover:border-rose-400 dark:hover:bg-rose-500 dark:hover:text-white';
 
   const actionButtons = (
     <>
@@ -183,9 +189,13 @@ function GalleryCard({
             type="button"
             onClick={handleCopy}
             title={`复制 ${copyFormat.toUpperCase()}`}
-            className={btnBase}
+            className={`${btnShared} ${btnSurface} ${btnNeutralHover}`}
           >
-            {copied ? <Check className="h-3.5 w-3.5 text-emerald-300" /> : <Copy className="h-3.5 w-3.5" />}
+            {copied ? (
+              <Check strokeWidth={2.25} className={`${iconSize} text-emerald-600 dark:text-emerald-400`} />
+            ) : (
+              <Copy strokeWidth={2} className={iconSize} />
+            )}
           </button>
           <button
             type="button"
@@ -194,9 +204,9 @@ function GalleryCard({
               triggerSingleImageDownload(image.url);
             }}
             title="下载原图"
-            className={btnBase}
+            className={`${btnShared} ${btnSurface} ${btnNeutralHover}`}
           >
-            <Download className="h-3.5 w-3.5" />
+            <Download strokeWidth={2} className={iconSize} />
           </button>
           {image.uploaderType === 'guest' && onPromoteGuest && (
             <button
@@ -206,9 +216,9 @@ function GalleryCard({
                 onPromoteGuest(image);
               }}
               title="复制到我的相册并生成新外链"
-              className={`${btnBase} hover:bg-blue-500/85`}
+              className={`${btnShared} ${btnSurface} ${btnPromoteHover}`}
             >
-              <BookmarkPlus className="h-3.5 w-3.5" />
+              <BookmarkPlus strokeWidth={2} className={iconSize} />
             </button>
           )}
         </>
@@ -221,9 +231,9 @@ function GalleryCard({
               onRestore(image);
             }}
             title="恢复图片"
-            className={`${btnBase} hover:bg-emerald-500/80`}
+            className={`${btnShared} ${btnSurface} ${btnRestoreHover}`}
           >
-            <RotateCcw className="h-3.5 w-3.5" />
+            <RotateCcw strokeWidth={2} className={iconSize} />
           </button>
         )
       )}
@@ -235,9 +245,9 @@ function GalleryCard({
           onTrashOrDelete(image);
         }}
         title={inTrash ? '彻底删除' : '移至回收站'}
-        className={`${btnBase} hover:bg-rose-500/85`}
+        className={`${btnShared} ${btnSurface} ${btnDangerHover}`}
       >
-        <Trash2 className="h-3.5 w-3.5" />
+        <Trash2 strokeWidth={2} className={iconSize} />
       </button>
     </>
   );
@@ -346,8 +356,12 @@ function GalleryCard({
         }`}
       />
 
-      {/* Top bar: selection checkbox (hidden on mobile until selectionActive) + guest badge */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between p-2 sm:p-2.5">
+      {/* Top-left selection checkbox (light/dark theme matched; hidden on mobile until selectionActive) */}
+      <div
+        className={`pointer-events-none absolute z-20 ${
+          isShortCard ? 'top-1.5 left-1.5' : 'top-2 left-2'
+        }`}
+      >
         <button
           type="button"
           onClick={(e) => {
@@ -355,62 +369,61 @@ function GalleryCard({
             onToggleSelect(image.id);
           }}
           aria-label="选择图片"
-          className={`flex h-6 w-6 items-center justify-center rounded-full border backdrop-blur-md transition-all ${
+          className={`flex h-6 w-6 items-center justify-center rounded-full border bg-clip-padding shadow-xs backdrop-blur-md transition-all duration-150 ${
             selected
-              ? 'pointer-events-auto scale-100 border-blue-500 bg-blue-500 text-white opacity-100'
+              ? 'pointer-events-auto border-blue-600 bg-blue-600 text-white opacity-100 dark:border-blue-500 dark:bg-blue-500'
               : selectionActive
-                ? 'pointer-events-auto scale-100 border-white/75 bg-black/40 text-white opacity-100'
-                : 'pointer-events-none scale-90 border-white/50 bg-black/30 text-white opacity-0 [@media(hover:hover)]:group-hover:pointer-events-auto [@media(hover:hover)]:group-hover:scale-100 [@media(hover:hover)]:group-hover:opacity-100 focus-visible:pointer-events-auto focus-visible:opacity-100'
+                ? 'pointer-events-auto border-zinc-900/20 bg-white/62 text-zinc-800 opacity-100 hover:border-zinc-900/35 hover:bg-white/80 dark:border-white/65 dark:bg-zinc-900/68 dark:text-white dark:hover:bg-zinc-800/90'
+                : 'pointer-events-none border-zinc-900/18 bg-white/55 text-zinc-800 opacity-0 hover:scale-105 hover:border-zinc-900/32 hover:bg-white/75 [@media(hover:hover)]:group-hover:pointer-events-auto [@media(hover:hover)]:group-hover:opacity-100 focus-visible:pointer-events-auto focus-visible:opacity-100 dark:border-white/55 dark:bg-zinc-900/65 dark:text-white dark:hover:border-white/80 dark:hover:bg-zinc-800/90'
           }`}
         >
           {selected && <Check className="h-3.5 w-3.5" strokeWidth={2.5} />}
         </button>
-
-        {image.uploaderType === 'guest' && (
-          <span
-            className={`inline-flex items-center gap-1 rounded-full border border-white/20 bg-black/45 px-2 py-0.5 text-[10px] font-medium text-white backdrop-blur-md transition-opacity ${
-              isNarrow ? 'group-hover:opacity-0' : ''
-            }`}
-          >
-            <UserCheck className="h-2.5 w-2.5" />
-            {measuredWidth >= 130 && '游客'}
-          </span>
-        )}
       </div>
 
-      {/* Desktop hover scrim & actions (hidden on touch devices; vertical rail or 2x2 cluster on narrow/short cards) */}
-      {isNarrow ? (
-        <div className="pointer-events-none absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/75 via-black/15 to-transparent p-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100 focus-within:opacity-100 [@media(hover:none)]:hidden">
-          <div
-            className={`pointer-events-none absolute right-2 bottom-2 group-hover:pointer-events-auto focus-within:pointer-events-auto ${
-              useCompactGrid
-                ? 'grid grid-cols-2 place-items-center gap-1'
-                : 'flex flex-col items-center gap-1.5'
+      {/* Desktop hover bottom metadata with ultra-faint white gradient in light mode & soft shadow in dark mode */}
+      <div
+        className={`pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-white/22 via-white/7 to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-within:opacity-100 dark:from-black/50 dark:via-black/18 dark:to-transparent [@media(hover:none)]:hidden ${
+          isShortCard
+            ? 'pt-4 pr-9 pb-1.5 pl-2'
+            : measuredWidth < 110
+              ? 'pt-5 pr-10 pb-2 pl-2'
+              : 'pt-5 pr-11 pb-2 pl-2.5'
+        }`}
+      >
+        <div className="min-w-0">
+          <p
+            className={`truncate font-medium text-zinc-900 dark:text-white dark:[text-shadow:0_1px_3px_rgba(0,0,0,0.7)] ${
+              measuredWidth < 130 ? 'text-[11px] leading-tight' : 'text-xs leading-snug'
             }`}
           >
-            {actionButtons}
-          </div>
-          {!hideNarrowText && (
-            <div className={`min-w-0 ${useCompactGrid ? 'pr-16' : 'pr-9'}`}>
-              <p className="truncate text-[11px] font-medium text-white">{image.originalName}</p>
-              <p className="truncate font-mono text-[10px] text-white/75">{formatBytes(image.sizeBytes)}</p>
-            </div>
-          )}
-        </div>
-      ) : (
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 bg-gradient-to-t from-black/75 via-black/30 to-transparent p-2.5 pt-8 opacity-0 transition-opacity duration-200 group-hover:opacity-100 focus-within:opacity-100 [@media(hover:none)]:hidden">
-          <div className="min-w-0">
-            <p className="truncate text-xs font-medium text-white">{image.originalName}</p>
-            <p className="font-mono text-[10px] text-white/75">
+            {image.originalName}
+          </p>
+          {splitMetaLines ? (
+            <>
+              <p className="truncate font-mono text-[9.5px] leading-tight text-zinc-700 dark:text-zinc-200 dark:[text-shadow:0_1px_2px_rgba(0,0,0,0.7)]">
+                {image.width}×{image.height}
+              </p>
+              <p className="truncate font-mono text-[9.5px] leading-tight text-zinc-700 dark:text-zinc-200/90 dark:[text-shadow:0_1px_2px_rgba(0,0,0,0.7)]">
+                {formatBytes(image.sizeBytes)}
+              </p>
+            </>
+          ) : (
+            <p className="truncate font-mono text-[10px] leading-snug text-zinc-700 dark:text-zinc-200 dark:[text-shadow:0_1px_2px_rgba(0,0,0,0.7)]">
               {image.width}×{image.height} · {formatBytes(image.sizeBytes)}
             </p>
-          </div>
-
-          <div className="pointer-events-none flex shrink-0 items-center gap-1 group-hover:pointer-events-auto focus-within:pointer-events-auto">
-            {actionButtons}
-          </div>
+          )}
         </div>
-      )}
+      </div>
+
+      {/* Desktop hover action buttons: always vertical along the bottom-right edge */}
+      <div
+        className={`pointer-events-none absolute z-20 flex flex-col items-center [@media(hover:none)]:hidden ${
+          isShortCard ? 'right-1.5 bottom-1.5 gap-1' : 'right-2 bottom-2 gap-[5px]'
+        }`}
+      >
+        {actionButtons}
+      </div>
     </motion.div>
   );
 }

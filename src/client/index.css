@@ -62,3 +62,11 @@
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(113, 113, 122, 0.45);
 }
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.32);
+}

@@ -589,9 +589,15 @@ function WorkspaceApp() {
   // Loading Splash
   if (!config) {
     if (configError) return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-3 p-6 text-sm">
+      <div className="bg-ambient-grid flex min-h-screen flex-col items-center justify-center gap-3 p-6 text-sm text-zinc-700 dark:text-zinc-200">
         <p role="alert">{configError}</p>
-        <button type="button" onClick={() => void refreshPublicConfig()} className="rounded-xl border px-4 py-2">重试</button>
+        <button
+          type="button"
+          onClick={() => void refreshPublicConfig()}
+          className="rounded-xl border border-zinc-200/80 bg-white px-4 py-2 text-xs font-medium text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-white/10 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-white/10"
+        >
+          重试
+        </button>
       </div>
     );
     return (
@@ -606,6 +612,8 @@ function WorkspaceApp() {
     return (
       <AuthCard
         config={config}
+        dark={dark}
+        onToggleTheme={toggleTheme}
         onBackHome={
           config.allowGuestUpload && isAdminRoute ? () => navigateTo('/') : undefined
         }
@@ -628,7 +636,7 @@ function WorkspaceApp() {
               <SiteIcon url={config.siteIconUrl} className="flex h-8 w-8 items-center justify-center rounded-xl bg-zinc-900 text-white dark:bg-white dark:text-zinc-900">
                 <Images className="h-4 w-4" />
               </SiteIcon>
-              <span className="text-sm font-semibold tracking-tight">{config.siteTitle}</span>
+              <span className="text-sm font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">{config.siteTitle}</span>
             </div>
 
             <button
@@ -677,7 +685,7 @@ function WorkspaceApp() {
             <SiteIcon url={config.siteIconUrl} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-zinc-900 text-white dark:bg-white dark:text-zinc-900">
               <Images className="h-4 w-4" />
             </SiteIcon>
-            <span className="truncate text-sm font-semibold tracking-tight">{config.siteTitle}</span>
+            <span className="truncate text-sm font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">{config.siteTitle}</span>
 
             <button
               type="button"
@@ -713,13 +721,13 @@ function WorkspaceApp() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="搜索文件名..."
-                className="w-full rounded-xl border border-zinc-200/80 bg-zinc-100/70 py-1.5 pr-7 pl-8 text-xs text-zinc-900 placeholder-zinc-400 outline-none transition-all focus:border-blue-500/60 focus:bg-white dark:border-white/10 dark:bg-white/[0.06] dark:text-zinc-100 dark:focus:bg-zinc-900"
+                className="w-full rounded-xl border border-zinc-200/80 bg-zinc-100/70 py-1.5 pr-7 pl-8 text-xs text-zinc-900 placeholder-zinc-400 outline-none transition-all focus:border-blue-500/60 focus:bg-white dark:border-white/10 dark:bg-white/[0.06] dark:text-zinc-100 dark:placeholder-zinc-500 dark:focus:bg-zinc-900"
               />
               {search && (
                 <button
                   type="button"
                   onClick={() => setSearch('')}
-                  className="absolute top-1/2 right-2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600"
+                  className="absolute top-1/2 right-2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>
@@ -786,13 +794,13 @@ function WorkspaceApp() {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="搜索文件名..."
-                  className="w-full rounded-xl border border-zinc-200/80 bg-zinc-100/70 py-1.5 pr-7 pl-8 text-xs text-zinc-900 placeholder-zinc-400 outline-none focus:border-blue-500/60 focus:bg-white dark:border-white/10 dark:bg-white/[0.06] dark:text-zinc-100 dark:focus:bg-zinc-900"
+                  className="w-full rounded-xl border border-zinc-200/80 bg-zinc-100/70 py-1.5 pr-7 pl-8 text-xs text-zinc-900 placeholder-zinc-400 outline-none focus:border-blue-500/60 focus:bg-white dark:border-white/10 dark:bg-white/[0.06] dark:text-zinc-100 dark:placeholder-zinc-500 dark:focus:bg-zinc-900"
                 />
                 {search && (
                   <button
                     type="button"
                     onClick={() => setSearch('')}
-                    className="absolute top-1/2 right-2 -translate-y-1/2 text-zinc-400"
+                    className="absolute top-1/2 right-2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
                   >
                     <X className="h-3.5 w-3.5" />
                   </button>
@@ -820,7 +828,7 @@ function WorkspaceApp() {
         {/* Filter & Album Controls */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center rounded-2xl border border-zinc-200/80 bg-white/80 p-1 dark:border-white/10 dark:bg-zinc-900/70">
+            <div className="flex items-center rounded-2xl border border-zinc-200/80 bg-zinc-100/80 p-1 dark:border-white/10 dark:bg-zinc-900/80">
               {viewModeTabs.map((tab) => {
                 const active = activeTabId === tab.id;
                 return (
@@ -842,7 +850,7 @@ function WorkspaceApp() {
                       <motion.span
                         layoutId="gallery-mode-pill"
                         transition={SPRING_SNAPPY}
-                        className="absolute inset-0 rounded-xl bg-zinc-100 dark:bg-white/10"
+                        className="absolute inset-0 rounded-xl bg-white shadow-xs dark:bg-zinc-800"
                       />
                     )}
                     <span className="relative z-10">{tab.label}</span>
@@ -860,10 +868,10 @@ function WorkspaceApp() {
                     setEditingAlbumId(null);
                     setActiveAlbumId('');
                   }}
-                  className={`rounded-xl px-2.5 py-1 text-xs font-medium transition-colors ${
+                  className={`rounded-xl border px-2.5 py-1 text-xs font-medium transition-colors ${
                     activeAlbumId === ''
-                      ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900'
-                      : 'bg-zinc-100/80 text-zinc-600 hover:bg-zinc-200/80 dark:bg-white/5 dark:text-zinc-400 dark:hover:bg-white/10'
+                      ? 'border-zinc-900 bg-zinc-900 text-white dark:border-white dark:bg-white dark:text-zinc-900'
+                      : 'border-zinc-200/80 bg-white/80 text-zinc-600 hover:bg-zinc-100 dark:border-white/10 dark:bg-white/[0.06] dark:text-zinc-300 dark:hover:bg-white/12'
                   }`}
                 >
                   全部相册
@@ -910,10 +918,10 @@ function WorkspaceApp() {
                               setEditingAlbumId(null);
                               setActiveAlbumId(isSelected ? '' : alb.id);
                             }}
-                            className={`rounded-xl px-2.5 py-1 text-xs font-medium transition-colors ${
+                            className={`rounded-xl border px-2.5 py-1 text-xs font-medium transition-colors ${
                               isSelected
-                                ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900'
-                                : 'bg-zinc-100/80 text-zinc-600 hover:bg-zinc-200/80 dark:bg-white/5 dark:text-zinc-400 dark:hover:bg-white/10'
+                                ? 'border-zinc-900 bg-zinc-900 text-white dark:border-white dark:bg-white dark:text-zinc-900'
+                                : 'border-zinc-200/80 bg-white/80 text-zinc-600 hover:bg-zinc-100 dark:border-white/10 dark:bg-white/[0.06] dark:text-zinc-300 dark:hover:bg-white/12'
                             }`}
                           >
                             {alb.name}
@@ -1021,15 +1029,21 @@ function WorkspaceApp() {
                 {selectedImagesList.length === Math.min(MAX_BATCH_IMAGES, images.length) ? '取消全选' : '全选本页'}
               </button>
             )}
-            <span className="font-mono text-xs text-zinc-400">共 {totalImages} 张</span>
+            <span className="font-mono text-xs text-zinc-500 dark:text-zinc-400">共 {totalImages} 张</span>
           </div>
         </div>
 
         {/* Gallery */}
         {galleryError && images.length === 0 ? (
-          <div className="rounded-3xl border border-zinc-200/70 p-8 text-center text-sm dark:border-white/[0.06]">
+          <div className="rounded-3xl border border-zinc-200/70 bg-white/50 p-8 text-center text-sm text-zinc-700 dark:border-white/[0.06] dark:bg-zinc-900/30 dark:text-zinc-200">
             <p role="alert">{galleryError}</p>
-            <button type="button" onClick={() => void fetchAdminData()} className="mt-3 rounded-xl border px-4 py-2">重试</button>
+            <button
+              type="button"
+              onClick={() => void fetchAdminData()}
+              className="mt-3 rounded-xl border border-zinc-200/80 bg-white px-4 py-2 text-xs font-medium text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-white/10 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-white/10"
+            >
+              重试
+            </button>
           </div>
         ) : (loadingGallery || !galleryReady) && images.length === 0 ? (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -1042,10 +1056,10 @@ function WorkspaceApp() {
           </div>
         ) : images.length === 0 ? (
           <div className="rounded-3xl border border-zinc-200/70 bg-white/50 px-6 py-16 text-center dark:border-white/[0.06] dark:bg-zinc-900/30">
-            <p className="text-sm font-medium text-zinc-600 dark:text-zinc-300">
+            <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
               {inTrash ? '回收站是空的' : '这里还没有图片'}
             </p>
-            <p className="mt-1 text-xs text-zinc-400">
+            <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
               {inTrash
                 ? '回收站最多保留 30 天，游客图片仍受原有效期约束'
                 : '拖入或按 Ctrl+V 粘贴一张截图试试'}
@@ -1136,7 +1150,7 @@ function WorkspaceApp() {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 6, scale: 0.96 }}
                         transition={SPRING_SNAPPY}
-                        className="absolute bottom-full left-0 mb-2 w-48 overflow-hidden rounded-2xl border border-zinc-200 bg-white p-1.5 shadow-xl dark:border-white/15 dark:bg-zinc-900"
+                        className="absolute bottom-full left-1/2 mb-2 max-h-60 w-48 max-w-[calc(100vw-32px)] -translate-x-1/2 overflow-y-auto rounded-2xl border border-zinc-200 bg-white p-1.5 shadow-xl sm:left-0 sm:translate-x-0 dark:border-white/15 dark:bg-zinc-900"
                       >
                         <button
                           type="button"
@@ -1181,7 +1195,7 @@ function WorkspaceApp() {
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: 6, scale: 0.96 }}
                           transition={SPRING_SNAPPY}
-                          className="absolute right-0 bottom-full mb-2 w-52 overflow-hidden rounded-2xl border border-zinc-200 bg-white p-1.5 shadow-xl dark:border-white/15 dark:bg-zinc-900"
+                          className="absolute right-1/2 bottom-full mb-2 max-h-60 w-52 max-w-[calc(100vw-32px)] translate-x-1/2 overflow-y-auto rounded-2xl border border-zinc-200 bg-white p-1.5 shadow-xl sm:right-0 sm:translate-x-0 dark:border-white/15 dark:bg-zinc-900"
                         >
                           <p className="px-3 py-1.5 text-[10px] text-zinc-400">
                             复制到管理员图库，游客原链接和有效期保留
