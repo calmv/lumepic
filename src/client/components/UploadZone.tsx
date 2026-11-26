@@ -204,7 +204,7 @@ export function UploadZone({
         return;
       }
       const supported = files.filter((file) => ALLOWED_TYPE.test(file.type) ||
-        (!file.type && /\.(?:jpe?g|png|webp|avif|gif)$/i.test(file.name)));
+        /\.(?:jpe?g|png|webp|avif|gif)$/i.test(file.name));
       const maxBytes = maxSizeMb * 1024 * 1024;
       const accepted = supported.filter((file) => file.size > 0 && file.size <= maxBytes);
       if (accepted.length !== files.length || accepted.length === 0) {
@@ -392,7 +392,6 @@ export function UploadZone({
       {/* Main Dropzone Surface */}
       <section className="w-full">
         <motion.div
-          onClick={() => inputRef.current?.click()}
           onMouseEnter={() => setIsHoverZone(true)}
           onMouseLeave={() => setIsHoverZone(false)}
           animate={{
@@ -401,17 +400,20 @@ export function UploadZone({
           transition={SPRING_SNAPPY}
           className="group relative cursor-pointer overflow-hidden rounded-3xl border border-dashed border-zinc-300/90 bg-white/75 px-6 py-7 transition-colors hover:border-blue-500/60 hover:bg-white dark:border-white/12 dark:bg-zinc-900/60 dark:hover:border-blue-400/50 dark:hover:bg-zinc-900/90"
         >
+          {/* Native overlay input avoids mobile WebView programmatic .click() rejection & uses permissionless Android Photo Picker */}
           <input
             ref={inputRef}
             type="file"
-            accept="image/jpeg,image/png,image/webp,image/avif,image/gif"
+            accept="image/*"
             multiple
-            className="hidden"
+            disabled={disabled}
+            aria-label="选择图片上传"
+            className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0 disabled:pointer-events-none"
             onChange={onInputChange}
           />
 
           <div className="flex flex-col items-stretch justify-between gap-4 lg:flex-row lg:items-center">
-            <div className="flex items-center gap-3.5">
+            <div className="pointer-events-none flex items-center gap-3.5">
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-zinc-100 text-zinc-700 transition-colors group-hover:bg-blue-500/10 group-hover:text-blue-600 sm:h-12 sm:w-12 dark:bg-white/[0.06] dark:text-zinc-300 dark:group-hover:bg-blue-500/15 dark:group-hover:text-blue-400">
                 <ImagePlus className="h-5 w-5" />
               </div>
@@ -434,9 +436,9 @@ export function UploadZone({
               </div>
             </div>
 
-            {/* Format selector + auto-copy pill */}
+            {/* Format selector + auto-copy pill (z-20 sits above overlay file input) */}
             <div
-              className="flex flex-wrap items-center justify-between gap-2 lg:justify-end"
+              className="relative z-20 flex flex-wrap items-center justify-between gap-2 lg:justify-end"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center rounded-xl border border-zinc-200/80 bg-zinc-100/80 p-0.5 dark:border-white/10 dark:bg-black/30">

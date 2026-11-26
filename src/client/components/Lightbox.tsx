@@ -73,10 +73,21 @@ export function Lightbox({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [showInfo, setShowInfo] = useState(true);
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
+  const [immersive, setImmersive] = useState(false);
   const [zoomed, setZoomed] = useState(false);
+  const [dragX, setDragX] = useState(0);
+  const [slideDir, setSlideDir] = useState<-1 | 0 | 1>(0);
   const [copiedFmt, setCopiedFmt] = useState<CopyFormat | null>(null);
   const [editingName, setEditingName] = useState('');
   const [promoteAlbumId, setPromoteAlbumId] = useState<string>('');
+  const touchSession = useRef<{
+    startX: number;
+    startY: number;
+    startTime: number;
+    axis: 'x' | 'y' | null;
+    dx: number;
+  } | null>(null);
+  const didSwipeRef = useRef(false);
 
   const modalId = useModalDialog(Boolean(image), containerRef, () => {
     if (isMobile && mobileSheetOpen) setMobileSheetOpen(false);
@@ -88,7 +99,12 @@ export function Lightbox({
   }, [isMobile]);
 
   useEffect(() => {
+    if (!image) {
+      setImmersive(false);
+      setSlideDir(0);
+    }
     setZoomed(false);
+    setDragX(0);
     setMobileSheetOpen(false);
     setEditingName(image?.originalName ?? '');
     setPromoteAlbumId(image?.albumId ?? '');
@@ -98,14 +114,20 @@ export function Lightbox({
   const prevImg = currentIdx > 0 ? images[currentIdx - 1] : null;
   const nextImg = currentIdx >= 0 && currentIdx < images.length - 1 ? images[currentIdx + 1] : null;
 
+  const navigateWithDirection = (target: ImageItem, dir: -1 | 1) => {
+    setSlideDir(dir);
+    setDragX(0);
+    onNavigate(target);
+  };
+
   useEffect(() => {
     if (!image) return;
     const onKeyDown = (e: KeyboardEvent) => {
       if (!isTopModal(modalId)) return;
       const target = e.target as HTMLElement | null;
       if (target && (target.tagName === 'INPUT' || target.tagName === 'SELECT' || target.tagName === 'TEXTAREA')) return;
-      if (e.key === 'ArrowLeft' && prevImg) onNavigate(prevImg);
-      if (e.key === 'ArrowRight' && nextImg) onNavigate(nextImg);
+      if (e.key === 'ArrowLeft' && prevImg) navigateWithDirection(prevImg, -1);
+      if (e.key === 'ArrowRight' && nextImg) navigateWithDirection(nextImg, 1);
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
@@ -391,145 +413,249 @@ export function Lightbox({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-50 flex bg-zinc-950/90 backdrop-blur-xl outline-none"
+          className={`fixed inset-0 z-50 flex backdrop-blur-xl outline-none transition-colors duration-200 ${
+            immersive ? 'bg-black/96' : 'bg-zinc-950/90'
+          }`}
           onClick={(e) => {
-            if (e.target === e.currentTarget) onClose();
+            if (e.target === e.currentTarget) {
+              if (immersive) setImmersive(false);
+              else onClose();
+            }
           }}
         >
           {/* Main Viewer Area */}
           <div
-            className="relative flex flex-1 flex-col items-center justify-center overflow-hidden p-4 pb-20 sm:p-8 md:pb-8"
+            className={`relative flex flex-1 touch-pan-y flex-col items-center justify-center overflow-hidden transition-[padding] duration-200 ${
+              immersive ? 'p-2 sm:p-6' : 'p-4 pb-20 sm:p-8 md:pb-8'
+            }`}
+            onTouchStart={(e) => {
+              if (mobileSheetOpen || zoomed || e.touches.length !== 1) {
+                touchSession.current = null;
+                return;
+              }
+              const target = e.target as HTMLElement | null;
+              if (target?.closest('button, a, input, select, textarea')) return;
+              const t = e.touches[0]!;
+              didSwipeRef.current = false;
+              touchSession.current = {
+                startX: t.clientX,
+                startY: t.clientY,
+                startTime: Date.now(),
+                axis: null,
+                dx: 0,
+              };
+            }}
+            onTouchMove={(e) => {
+              const session = touchSession.current;
+              if (!session || e.touches.length !== 1) {
+                if (touchSession.current) {
+                  touchSession.current = null;
+                  setDragX(0);
+                }
+                return;
+              }
+              const t = e.touches[0]!;
+              const dx = t.clientX - session.startX;
+              const dy = t.clientY - session.startY;
+              if (!session.axis) {
+                if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+                session.axis = Math.abs(dx) >= Math.abs(dy) ? 'x' : 'y';
+                if (session.axis === 'x') didSwipeRef.current = true;
+              }
+              if (session.axis !== 'x') return;
+              session.dx = dx;
+              const hasNeighbor = (dx < 0 && Boolean(nextImg)) || (dx > 0 && Boolean(prevImg));
+              setDragX(hasNeighbor ? dx : dx * 0.25);
+            }}
+            onTouchEnd={() => {
+              const session = touchSession.current;
+              touchSession.current = null;
+              if (!session || session.axis !== 'x') {
+                setDragX(0);
+                return;
+              }
+              const dt = Math.max(1, Date.now() - session.startTime);
+              const vx = session.dx / dt;
+              const shouldSwitch = Math.abs(session.dx) > 48 || (Math.abs(session.dx) > 20 && Math.abs(vx) > 0.32);
+              if (shouldSwitch && session.dx < 0 && nextImg) {
+                navigateWithDirection(nextImg, 1);
+              } else if (shouldSwitch && session.dx > 0 && prevImg) {
+                navigateWithDirection(prevImg, -1);
+              } else {
+                setDragX(0);
+              }
+              window.setTimeout(() => {
+                didSwipeRef.current = false;
+              }, 60);
+            }}
+            onTouchCancel={() => {
+              touchSession.current = null;
+              setDragX(0);
+            }}
             onClick={(e) => {
-              if (e.target === e.currentTarget) onClose();
+              if (didSwipeRef.current) return;
+              if (e.target === e.currentTarget) {
+                if (immersive) setImmersive(false);
+                else onClose();
+              }
             }}
           >
-            {/* Top floating bar */}
-            <div className="pointer-events-none absolute inset-x-3 top-3 z-10 flex items-center justify-between gap-2 sm:inset-x-4 sm:top-4">
-              <div className="pointer-events-auto flex min-w-0 items-center gap-2 rounded-full border border-white/10 bg-black/45 px-3 py-1.5 text-xs text-zinc-200 backdrop-blur-md">
-                <span className="max-w-[135px] truncate font-medium sm:max-w-48">
-                  {image.originalName}
-                </span>
-                <span className="hidden text-zinc-500 sm:inline">·</span>
-                <span className="hidden font-mono text-[11px] text-zinc-400 sm:inline">
-                  {image.width}×{image.height}
-                </span>
-              </div>
+            {/* Top floating bar (hidden in pure/immersive mode) */}
+            <AnimatePresence initial={false}>
+              {!immersive && (
+                <motion.div
+                  initial={{ opacity: 0, y: -12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -12 }}
+                  transition={{ duration: 0.18 }}
+                  className="pointer-events-none absolute inset-x-3 top-3 z-10 flex items-center justify-between gap-2 sm:inset-x-4 sm:top-4"
+                >
+                  <div className="pointer-events-auto flex min-w-0 items-center gap-2 rounded-full border border-white/10 bg-black/45 px-3 py-1.5 text-xs text-zinc-200 backdrop-blur-md">
+                    <span className="max-w-[135px] truncate font-medium sm:max-w-48">
+                      {image.originalName}
+                    </span>
+                    <span className="hidden text-zinc-500 sm:inline">·</span>
+                    <span className="hidden font-mono text-[11px] text-zinc-400 sm:inline">
+                      {image.width}×{image.height}
+                    </span>
+                  </div>
 
-              <div className="pointer-events-auto flex shrink-0 items-center gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => triggerSingleImageDownload(image.url)}
-                  className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-black/45 text-zinc-200 backdrop-blur-md transition-colors hover:bg-white/15"
-                  title="下载图片"
-                >
-                  <Download className="h-4 w-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setZoomed((z) => !z)}
-                  className="hidden h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-black/45 text-zinc-200 backdrop-blur-md transition-colors hover:bg-white/15 sm:flex"
-                  title={zoomed ? '还原比例' : '放大查看'}
-                >
-                  {zoomed ? <ZoomOut className="h-4 w-4" /> : <ZoomIn className="h-4 w-4" />}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (isMobile) {
-                      setMobileSheetOpen((v) => !v);
-                    } else {
-                      setShowInfo((v) => !v);
-                    }
-                  }}
-                  className={`flex h-9 w-9 items-center justify-center rounded-full border border-white/10 backdrop-blur-md transition-colors ${
-                    (isMobile ? mobileSheetOpen : showInfo)
-                      ? 'bg-white text-zinc-900'
-                      : 'bg-black/45 text-zinc-200 hover:bg-white/15'
-                  }`}
-                  title="显示/隐藏详情"
-                >
-                  <Info className="h-4 w-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-black/45 text-zinc-200 backdrop-blur-md transition-colors hover:bg-white/15"
-                  title="关闭 (Esc)"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
+                  <div className="pointer-events-auto flex shrink-0 items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => triggerSingleImageDownload(image.url)}
+                      className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-black/45 text-zinc-200 backdrop-blur-md transition-colors hover:bg-white/15"
+                      title="下载图片"
+                    >
+                      <Download className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setZoomed((z) => !z)}
+                      className="hidden h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-black/45 text-zinc-200 backdrop-blur-md transition-colors hover:bg-white/15 sm:flex"
+                      title={zoomed ? '还原比例' : '放大查看'}
+                    >
+                      {zoomed ? <ZoomOut className="h-4 w-4" /> : <ZoomIn className="h-4 w-4" />}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (isMobile) {
+                          setMobileSheetOpen((v) => !v);
+                        } else {
+                          setShowInfo((v) => !v);
+                        }
+                      }}
+                      className={`flex h-9 w-9 items-center justify-center rounded-full border border-white/10 backdrop-blur-md transition-colors ${
+                        (isMobile ? mobileSheetOpen : showInfo)
+                          ? 'bg-white text-zinc-900'
+                          : 'bg-black/45 text-zinc-200 hover:bg-white/15'
+                      }`}
+                      title="显示/隐藏详情"
+                    >
+                      <Info className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={onClose}
+                      className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-black/45 text-zinc-200 backdrop-blur-md transition-colors hover:bg-white/15"
+                      title="关闭 (Esc)"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-            {/* Prev / Next arrows */}
-            {prevImg && (
+            {/* Desktop Prev / Next arrows (hidden on mobile in favor of finger swipe, and hidden in pure mode) */}
+            {!immersive && prevImg && (
               <button
                 type="button"
-                onClick={() => onNavigate(prevImg)}
-                className="absolute left-2.5 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-black/45 text-white backdrop-blur-md transition-transform hover:scale-105 hover:bg-black/70 sm:left-4 sm:h-10 sm:w-10"
+                onClick={() => navigateWithDirection(prevImg, -1)}
+                className="absolute left-4 z-10 hidden h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-black/45 text-white backdrop-blur-md transition-transform hover:scale-105 hover:bg-black/70 md:flex"
                 title="上一张 (←)"
               >
                 <ChevronLeft className="h-5 w-5" />
               </button>
             )}
-            {nextImg && (
+            {!immersive && nextImg && (
               <button
                 type="button"
-                onClick={() => onNavigate(nextImg)}
-                className="absolute right-2.5 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-black/45 text-white backdrop-blur-md transition-transform hover:scale-105 hover:bg-black/70 sm:right-4 sm:h-10 sm:w-10"
+                onClick={() => navigateWithDirection(nextImg, 1)}
+                className="absolute right-4 z-10 hidden h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-black/45 text-white backdrop-blur-md transition-transform hover:scale-105 hover:bg-black/70 md:flex"
                 title="下一张 (→)"
               >
                 <ChevronRight className="h-5 w-5" />
               </button>
             )}
 
-            {/* Shared-element smooth animated image */}
+            {/* Image with swipe drag follow & click-to-toggle pure immersive view */}
             <motion.img
               key={image.id}
-              layoutId={`image-media-${image.id}`}
+              layoutId={slideDir === 0 ? `image-media-${image.id}` : undefined}
               src={image.url}
               alt={image.originalName}
               draggable={false}
-              onClick={() => setZoomed((z) => !z)}
-              animate={{ scale: zoomed ? 1.55 : 1 }}
-              transition={SPRING_GENTLE}
-              className={`max-h-[75vh] max-w-full rounded-xl object-contain shadow-2xl select-none sm:max-h-[84vh] ${
-                zoomed ? 'cursor-zoom-out' : 'cursor-zoom-in'
+              style={{ WebkitTouchCallout: 'none' }}
+              onClick={() => {
+                if (didSwipeRef.current) return;
+                if (mobileSheetOpen) {
+                  setMobileSheetOpen(false);
+                  return;
+                }
+                setImmersive((v) => !v);
+              }}
+              initial={slideDir !== 0 ? { opacity: 0.35, x: slideDir * 64 } : false}
+              animate={{ opacity: 1, x: dragX, scale: zoomed ? 1.55 : 1 }}
+              transition={dragX !== 0 ? { duration: 0 } : SPRING_GENTLE}
+              className={`max-w-full cursor-pointer rounded-xl object-contain shadow-2xl select-none ${
+                immersive ? 'max-h-[94vh]' : 'max-h-[75vh] sm:max-h-[84vh]'
               }`}
             />
 
-            {/* Mobile quick-action bar at bottom */}
-            <div className="fixed inset-x-3 bottom-3 z-20 flex items-center justify-between gap-2 rounded-2xl border border-white/10 bg-zinc-900/90 px-3 py-2 backdrop-blur-xl md:hidden">
-              {!image.deletedAt && <button
-                type="button"
-                onClick={() => void handleCopyFormat(copyFormat)}
-                className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-blue-600 px-3 py-2 text-xs font-medium text-white"
-              >
-                <Copy className="h-3.5 w-3.5" />
-                复制 {copyFormat.toUpperCase()}
-              </button>}
-              <button
-                type="button"
-                onClick={() => triggerSingleImageDownload(image.url)}
-                className="inline-flex items-center justify-center gap-1 rounded-xl bg-white/10 px-3 py-2 text-xs font-medium text-zinc-100"
-              >
-                <Download className="h-3.5 w-3.5" />
-                下载
-              </button>
-              <button
-                type="button"
-                onClick={() => setMobileSheetOpen(true)}
-                className="inline-flex items-center justify-center gap-1 rounded-xl bg-white/10 px-3 py-2 text-xs font-medium text-zinc-100"
-              >
-                <Info className="h-3.5 w-3.5" />
-                详情
-              </button>
-            </div>
+            {/* Mobile quick-action bar at bottom (hidden in pure/immersive mode) */}
+            <AnimatePresence initial={false}>
+              {!immersive && (
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 16 }}
+                  transition={{ duration: 0.18 }}
+                  className="fixed inset-x-3 bottom-3 z-20 flex items-center justify-between gap-2 rounded-2xl border border-white/10 bg-zinc-900/90 px-3 py-2 backdrop-blur-xl md:hidden"
+                >
+                  {!image.deletedAt && <button
+                    type="button"
+                    onClick={() => void handleCopyFormat(copyFormat)}
+                    className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-blue-600 px-3 py-2 text-xs font-medium text-white"
+                  >
+                    <Copy className="h-3.5 w-3.5" />
+                    复制 {copyFormat.toUpperCase()}
+                  </button>}
+                  <button
+                    type="button"
+                    onClick={() => triggerSingleImageDownload(image.url)}
+                    className="inline-flex items-center justify-center gap-1 rounded-xl bg-white/10 px-3 py-2 text-xs font-medium text-zinc-100"
+                  >
+                    <Download className="h-3.5 w-3.5" />
+                    下载
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMobileSheetOpen(true)}
+                    className="inline-flex items-center justify-center gap-1 rounded-xl bg-white/10 px-3 py-2 text-xs font-medium text-zinc-100"
+                  >
+                    <Info className="h-3.5 w-3.5" />
+                    详情
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
-          {/* Desktop Right Info Sidebar */}
+          {/* Desktop Right Info Sidebar (also hides during pure/immersive mode) */}
           <AnimatePresence initial={false}>
-            {showInfo && (
+            {showInfo && !immersive && (
               <motion.aside
                 initial={{ width: 0, opacity: 0 }}
                 animate={{ width: 340, opacity: 1 }}

@@ -42,7 +42,7 @@ function buildJustifiedRows(
 
   for (const image of images) {
     const rawRatio = image.width > 0 && image.height > 0 ? image.width / image.height : 1.33;
-    const ratio = Math.min(2.6, Math.max(0.45, rawRatio));
+    const ratio = Math.min(2.6, Math.max(0.52, rawRatio));
     current.push({ image, ratio });
     ratioSum += ratio;
 
@@ -116,6 +116,22 @@ function GalleryCard({
   const [loaded, setLoaded] = useState(false);
   const [copied, setCopied] = useState(false);
   const thumbPlaceholder = useMemo(() => decodeThumbHashUrl(image.thumbhash), [image.thumbhash]);
+  const longPressTimer = useRef<number | null>(null);
+  const touchStartPos = useRef<{ x: number; y: number } | null>(null);
+  const suppressClick = useRef(false);
+
+  const isNarrow = width !== undefined && width < 195;
+  const isVeryNarrow = width !== undefined && width < 130;
+
+  const clearLongPress = () => {
+    if (longPressTimer.current !== null) {
+      window.clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+    touchStartPos.current = null;
+  };
+
+  useEffect(() => clearLongPress, []);
 
   const handleCopy = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -131,6 +147,77 @@ function GalleryCard({
     }
   };
 
+  const btnBase = isNarrow
+    ? 'flex h-7 w-7 items-center justify-center rounded-full border border-white/15 bg-black/50 text-white backdrop-blur-md transition-colors hover:bg-black/75'
+    : 'flex h-7 w-7 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-md transition-colors hover:bg-white/35';
+
+  const actionButtons = (
+    <>
+      {!inTrash ? (
+        <>
+          <button
+            type="button"
+            onClick={handleCopy}
+            title={`复制 ${copyFormat.toUpperCase()}`}
+            className={btnBase}
+          >
+            {copied ? <Check className="h-3.5 w-3.5 text-emerald-300" /> : <Copy className="h-3.5 w-3.5" />}
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              triggerSingleImageDownload(image.url);
+            }}
+            title="下载原图"
+            className={btnBase}
+          >
+            <Download className="h-3.5 w-3.5" />
+          </button>
+          {image.uploaderType === 'guest' && onPromoteGuest && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onPromoteGuest(image);
+              }}
+              title="复制到我的相册并生成新外链"
+              className={`${btnBase} hover:bg-blue-500/85`}
+            >
+              <BookmarkPlus className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </>
+      ) : (
+        onRestore && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onRestore(image);
+            }}
+            title="恢复图片"
+            className={`${btnBase} hover:bg-emerald-500/80`}
+          >
+            <RotateCcw className="h-3.5 w-3.5" />
+          </button>
+        )
+      )}
+
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          onTrashOrDelete(image);
+        }}
+        title={inTrash ? '彻底删除' : '移至回收站'}
+        className={`${btnBase} hover:bg-rose-500/85`}
+      >
+        <Trash2 className="h-3.5 w-3.5" />
+      </button>
+    </>
+  );
+
   return (
     <motion.div
       layout="position"
@@ -138,8 +225,44 @@ function GalleryCard({
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
       transition={SPRING_SNAPPY}
-      style={width && height ? { width, height } : undefined}
-      onClick={() => {
+      style={{
+        ...(width && height ? { width, height } : {}),
+        WebkitTouchCallout: 'none',
+      }}
+      onPointerDown={(e) => {
+        if ((e.pointerType !== 'touch' && e.pointerType !== 'pen') || selectionActive) return;
+        suppressClick.current = false;
+        touchStartPos.current = { x: e.clientX, y: e.clientY };
+        clearLongPress();
+        touchStartPos.current = { x: e.clientX, y: e.clientY };
+        longPressTimer.current = window.setTimeout(() => {
+          longPressTimer.current = null;
+          suppressClick.current = true;
+          navigator.vibrate?.(15);
+          onToggleSelect(image.id);
+        }, 380);
+      }}
+      onPointerMove={(e) => {
+        if (!touchStartPos.current) return;
+        if (Math.hypot(e.clientX - touchStartPos.current.x, e.clientY - touchStartPos.current.y) > 10) {
+          clearLongPress();
+        }
+      }}
+      onPointerUp={clearLongPress}
+      onPointerCancel={clearLongPress}
+      onPointerLeave={clearLongPress}
+      onContextMenu={(e) => {
+        if (suppressClick.current || !window.matchMedia('(hover: hover)').matches) {
+          e.preventDefault();
+        }
+      }}
+      onClick={(e) => {
+        if (suppressClick.current) {
+          suppressClick.current = false;
+          e.preventDefault();
+          e.stopPropagation();
+          return;
+        }
         if (selectionActive) {
           onToggleSelect(image.id);
         } else {
@@ -176,12 +299,12 @@ function GalleryCard({
         decoding="async"
         draggable={false}
         onLoad={() => setLoaded(true)}
-        className={`h-full w-full object-cover transition-all duration-300 group-hover:scale-[1.03] ${
+        className={`pointer-events-none h-full w-full object-cover transition-all duration-300 group-hover:scale-[1.03] ${
           loaded ? 'opacity-100' : 'opacity-0'
         }`}
       />
 
-      {/* Top bar: selection checkbox + guest badge */}
+      {/* Top bar: selection checkbox (hidden on mobile until selectionActive) + guest badge */}
       <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between p-2 sm:p-2.5">
         <button
           type="button"
@@ -190,99 +313,56 @@ function GalleryCard({
             onToggleSelect(image.id);
           }}
           aria-label="选择图片"
-          className={`pointer-events-auto flex h-6 w-6 items-center justify-center rounded-full border backdrop-blur-md transition-all ${
+          className={`flex h-6 w-6 items-center justify-center rounded-full border backdrop-blur-md transition-all ${
             selected
-              ? 'scale-100 border-blue-500 bg-blue-500 text-white opacity-100'
+              ? 'pointer-events-auto scale-100 border-blue-500 bg-blue-500 text-white opacity-100'
               : selectionActive
-                ? 'scale-100 border-white/70 bg-black/35 text-white opacity-100'
-                : 'scale-90 border-white/50 bg-black/30 text-white opacity-100 [@media(hover:hover)]:opacity-0 group-hover:scale-100 group-hover:opacity-100 focus-visible:opacity-100'
+                ? 'pointer-events-auto scale-100 border-white/75 bg-black/40 text-white opacity-100'
+                : 'pointer-events-none scale-90 border-white/50 bg-black/30 text-white opacity-0 [@media(hover:hover)]:group-hover:pointer-events-auto [@media(hover:hover)]:group-hover:scale-100 [@media(hover:hover)]:group-hover:opacity-100 focus-visible:pointer-events-auto focus-visible:opacity-100'
           }`}
         >
           {selected && <Check className="h-3.5 w-3.5" strokeWidth={2.5} />}
         </button>
 
         {image.uploaderType === 'guest' && (
-          <span className="inline-flex items-center gap-1 rounded-full border border-white/20 bg-black/45 px-2 py-0.5 text-[10px] font-medium text-white backdrop-blur-md">
+          <span
+            className={`inline-flex items-center gap-1 rounded-full border border-white/20 bg-black/45 px-2 py-0.5 text-[10px] font-medium text-white backdrop-blur-md transition-opacity ${
+              isNarrow ? 'group-hover:opacity-0' : ''
+            }`}
+          >
             <UserCheck className="h-2.5 w-2.5" />
-            游客
+            {!isVeryNarrow && '游客'}
           </span>
         )}
       </div>
 
-      {/* Bottom hover scrim & micro actions (desktop hover; mobile taps open Lightbox bottom sheet) */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 bg-gradient-to-t from-black/75 via-black/30 to-transparent p-2.5 pt-8 opacity-0 transition-opacity duration-200 group-hover:opacity-100 focus-within:opacity-100">
-        <div className="min-w-0">
-          <p className="truncate text-xs font-medium text-white">{image.originalName}</p>
-          <p className="font-mono text-[10px] text-white/75">
-            {image.width}×{image.height} · {formatBytes(image.sizeBytes)}
-          </p>
-        </div>
-
-        <div className="pointer-events-none flex shrink-0 items-center gap-1 group-hover:pointer-events-auto focus-within:pointer-events-auto">
-          {!inTrash ? (
-            <>
-              <button
-                type="button"
-                onClick={handleCopy}
-                title={`复制 ${copyFormat.toUpperCase()}`}
-                className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-md transition-colors hover:bg-white/35"
-              >
-                {copied ? <Check className="h-3.5 w-3.5 text-emerald-300" /> : <Copy className="h-3.5 w-3.5" />}
-              </button>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  triggerSingleImageDownload(image.url);
-                }}
-                title="下载原图"
-                className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-md transition-colors hover:bg-white/35"
-              >
-                <Download className="h-3.5 w-3.5" />
-              </button>
-              {image.uploaderType === 'guest' && onPromoteGuest && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onPromoteGuest(image);
-                  }}
-                  title="复制到我的相册并生成新外链"
-                  className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-md transition-colors hover:bg-blue-500/85"
-                >
-                  <BookmarkPlus className="h-3.5 w-3.5" />
-                </button>
-              )}
-            </>
-          ) : (
-            onRestore && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onRestore(image);
-                }}
-                title="恢复图片"
-                className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-md transition-colors hover:bg-emerald-500/80"
-              >
-                <RotateCcw className="h-3.5 w-3.5" />
-              </button>
-            )
+      {/* Desktop hover scrim & actions (hidden on touch devices; vertical rail on narrow portrait cards) */}
+      {isNarrow ? (
+        <div className="pointer-events-none absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/75 via-black/15 to-transparent p-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100 focus-within:opacity-100 [@media(hover:none)]:hidden">
+          <div className="pointer-events-none absolute right-2 bottom-2 flex flex-col items-center gap-1.5 group-hover:pointer-events-auto focus-within:pointer-events-auto">
+            {actionButtons}
+          </div>
+          {!isVeryNarrow && (
+            <div className="min-w-0 pr-9">
+              <p className="truncate text-[11px] font-medium text-white">{image.originalName}</p>
+              <p className="truncate font-mono text-[10px] text-white/75">{formatBytes(image.sizeBytes)}</p>
+            </div>
           )}
-
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onTrashOrDelete(image);
-            }}
-            title={inTrash ? '彻底删除' : '移至回收站'}
-            className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-md transition-colors hover:bg-rose-500/85"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </button>
         </div>
-      </div>
+      ) : (
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 bg-gradient-to-t from-black/75 via-black/30 to-transparent p-2.5 pt-8 opacity-0 transition-opacity duration-200 group-hover:opacity-100 focus-within:opacity-100 [@media(hover:none)]:hidden">
+          <div className="min-w-0">
+            <p className="truncate text-xs font-medium text-white">{image.originalName}</p>
+            <p className="font-mono text-[10px] text-white/75">
+              {image.width}×{image.height} · {formatBytes(image.sizeBytes)}
+            </p>
+          </div>
+
+          <div className="pointer-events-none flex shrink-0 items-center gap-1 group-hover:pointer-events-auto focus-within:pointer-events-auto">
+            {actionButtons}
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 }

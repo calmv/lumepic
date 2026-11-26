@@ -627,28 +627,32 @@ export function SettingsDrawer({
                         <p className="text-xs font-medium text-zinc-900 dark:text-zinc-100">站点图标</p>
                         <p className="text-[11px] text-zinc-500">PNG、JPG、WebP，最多 2 MB</p>
                       </div>
-                      <input
-                        ref={siteIconInput}
-                        type="file"
-                        accept="image/png,image/jpeg,image/webp"
-                        aria-label="站点图标"
-                        className="hidden"
-                        onChange={(event) => {
-                          const file = event.currentTarget.files?.[0];
-                          event.currentTarget.value = '';
-                          if (file) changeSiteIcon(file);
-                        }}
-                      />
                       {siteIconUrl && (
                         <button type="button" disabled={saving} onClick={() => changeSiteIcon(null)}
                           className="rounded-xl px-2.5 py-1.5 text-xs text-zinc-500 hover:bg-zinc-100 disabled:opacity-50 dark:hover:bg-white/10">
                           恢复默认
                         </button>
                       )}
-                      <button type="button" disabled={saving} onClick={() => siteIconInput.current?.click()}
-                        className="rounded-xl border border-zinc-200/80 px-2.5 py-1.5 text-xs font-medium hover:bg-zinc-100 disabled:opacity-50 dark:border-white/10 dark:hover:bg-white/10">
+                      <label
+                        className={`relative cursor-pointer rounded-xl border border-zinc-200/80 px-2.5 py-1.5 text-xs font-medium hover:bg-zinc-100 dark:border-white/10 dark:hover:bg-white/10 ${
+                          saving ? 'pointer-events-none opacity-50' : ''
+                        }`}
+                      >
                         选择图标
-                      </button>
+                        <input
+                          ref={siteIconInput}
+                          type="file"
+                          accept="image/*"
+                          disabled={saving}
+                          aria-label="站点图标"
+                          className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                          onChange={(event) => {
+                            const file = event.currentTarget.files?.[0];
+                            event.currentTarget.value = '';
+                            if (file) changeSiteIcon(file);
+                          }}
+                        />
+                      </label>
                     </div>
 
                     <div>
